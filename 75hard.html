@@ -1047,7 +1047,7 @@ function drawWeightGraph(weights){
   if(!canvas)return;
   const recent=weights.slice(-30);
   if(recent.length<2)return;
-  const W=canvas.parentElement.offsetWidth-32||300;
+  const W=Math.max(280,document.getElementById('weightGraphWrap').offsetWidth-32);
   const H=140;
   const dpr=window.devicePixelRatio||1;
   canvas.width=W*dpr;canvas.height=H*dpr;
