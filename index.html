@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#080809">
 <title>75 Hard — Summer Ascent</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -138,6 +138,7 @@ textarea.inp{resize:vertical;min-height:80px;line-height:1.6}
 @keyframes dotb{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 
 .hidden{display:none!important}
+input,select,textarea{font-size:16px!important}
 </style>
 </head>
 <body>
@@ -530,6 +531,7 @@ textarea.inp{resize:vertical;min-height:80px;line-height:1.6}
       <div style="flex:1">
         <div style="font-size:10px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.12em;text-transform:uppercase">Logged Today</div>
         <div style="font-family:var(--font-d);font-size:48px;line-height:1;color:var(--text1)" id="foodCalToday">0 <span style="font-size:16px;color:var(--text3)">kcal</span></div>
+        <div style="margin-top:8px"><div class="pbar-wrap"><div class="pbar-fill" id="calPbarFill" style="width:0%;background:var(--mint);box-shadow:0 0 8px rgba(110,231,183,0.30)"></div></div><div id="calLimitText" style="font-size:11px;color:var(--text3);font-family:var(--font-m);margin-top:4px">1500 kcal remaining</div></div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
@@ -902,9 +904,13 @@ function renderDash(){
   const done=nn.filter(i=>td.nn[i.id]).length;
   document.getElementById('dashDoneToday').textContent=done;
 
-  // Preview
+  // Preview — all task sources
+  const dashBad=S.get('bad')||DEFAULT_BAD;
+  const dashCustom=S.get('customHabits')||[];
+  const allPreview=[...nn.map(i=>({label:i.label,done:!!td.nn[i.id]})),...dashBad.map(h=>({label:h.label,done:!!td.bad[h.id]})),...dashCustom.map((h,ci)=>({label:h,done:!!td.nn['c_'+ci]}))];
   const prev=document.getElementById('dashPreview');
-  prev.innerHTML=nn.slice(0,5).map(i=>{const d=td.nn[i.id];return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div class="chk ${d?'done':''}" style="pointer-events:none">${d?'✓':''}</div><div style="font-size:13px;color:${d?'var(--text3)':'var(--text1)'};${d?'text-decoration:line-through':''}">${esc(i.label)}</div></div>`}).join('')+(nn.length>5?`<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0">+${nn.length-5} more</div>`:'');
+  const PLIMIT=5;
+  prev.innerHTML=allPreview.slice(0,PLIMIT).map(item=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)"><div class="chk ${item.done?'done':''}" style="pointer-events:none">${item.done?'✓':''}</div><div style="font-size:13px;color:${item.done?'var(--text3)':'var(--text1)'};${item.done?'text-decoration:line-through':''}">${esc(item.label)}</div></div>`).join('')+(allPreview.length>PLIMIT?`<div style="font-size:11px;color:var(--text3);text-align:center;padding:8px 0">+${allPreview.length-PLIMIT} more</div>`:'');
 
   // Punishment
   const p=S.get('punishment');
@@ -951,7 +957,7 @@ function renderDaily(){
   document.getElementById('dailySub').textContent='Day '+dayNum()+' of '+TOTAL+' · '+daysLeft()+' days remaining';
   const td=getTD();
   const nn=S.get('nn')||DEFAULT_NN;
-  const bad=DEFAULT_BAD;
+  const bad=S.get('bad')||DEFAULT_BAD;
   const custom=S.get('customHabits')||[];
   const total=nn.length+bad.length+custom.length;
   const done=nn.filter(i=>td.nn[i.id]).length+bad.filter(h=>td.bad[h.id]).length+custom.filter((_,i)=>td.nn['c_'+i]).length;
@@ -964,19 +970,51 @@ function renderDaily(){
   document.getElementById('dailyDoneCount').textContent=done+' / '+total;
 
   // Non-negotiables
-  document.getElementById('nnList').innerHTML=nn.map(i=>{const d=!!td.nn[i.id];return`<div class="row" style="cursor:pointer" onclick="toggleNN('${i.id}')"><div class="chk ${d?'done':''}">${d?'✓':''}</div><div class="row-info"><div class="row-title" style="${d?'text-decoration:line-through;color:var(--text3)':''}">${esc(i.label)}</div><div class="row-sub">${esc(i.sub)}</div></div></div>`}).join('');
+  document.getElementById('nnList').innerHTML=nn.map(i=>{const d=!!td.nn[i.id];return`<div class="row" data-nn-id="${i.id}"><div class="chk ${d?'done':''}" onclick="toggleNN('${i.id}')">${d?'✓':''}</div><div class="row-info" style="cursor:pointer;flex:1" onclick="toggleNN('${i.id}')"><div class="row-title" style="${d?'text-decoration:line-through;color:var(--text3)':''}">${esc(i.label)}</div><div class="row-sub">${esc(i.sub)}</div></div><button onclick="editNN('${i.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px 6px;opacity:0.7">✏️</button><button onclick="deleteNN('${i.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px 6px;opacity:0.6">×</button></div>`}).join('');
 
   // Bad habits
-  document.getElementById('badList').innerHTML=bad.map(h=>{const c=!!td.bad[h.id];return`<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg1);border:1px solid ${c?'rgba(110,231,183,0.22)':'rgba(255,90,90,0.18)'};border-radius:var(--r);margin-bottom:8px"><div><div style="font-size:14px;font-weight:600;color:${c?'var(--mint)':'var(--red)'}">${esc(h.label)}</div><div style="font-size:11px;color:var(--text3);font-family:var(--font-m);margin-top:2px">${esc(h.desc)}</div></div><div style="width:44px;height:24px;border-radius:999px;background:${c?'var(--mint)':'rgba(255,255,255,0.08)'};cursor:pointer;position:relative;transition:background 200ms;flex-shrink:0" onclick="toggleBad('${h.id}')"><div style="position:absolute;top:3px;left:${c?'23':'3'}px;width:18px;height:18px;border-radius:50%;background:${c?'#080809':'#fff'};transition:left 200ms"></div></div></div>`}).join('');
+  document.getElementById('badList').innerHTML=bad.map(h=>{const c=!!td.bad[h.id];return`<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--bg1);border:1px solid ${c?'rgba(110,231,183,0.22)':'rgba(255,90,90,0.18)'};border-radius:var(--r);margin-bottom:8px" data-bad-id="${h.id}"><div style="flex:1;min-width:0"><div class="bad-label" style="font-size:14px;font-weight:600;color:${c?'var(--mint)':'var(--red)'}">${esc(h.label)}</div><div style="font-size:11px;color:var(--text3);font-family:var(--font-m);margin-top:2px">${esc(h.desc)}</div></div><div style="display:flex;align-items:center;gap:6px;flex-shrink:0"><button onclick="editBad('${h.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px 6px;opacity:0.7">✏️</button><button onclick="deleteBad('${h.id}')" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px 6px;opacity:0.6">×</button><div style="width:44px;height:24px;border-radius:999px;background:${c?'var(--mint)':'rgba(255,255,255,0.08)'};cursor:pointer;position:relative;transition:background 200ms" onclick="toggleBad('${h.id}')"><div style="position:absolute;top:3px;left:${c?'23':'3'}px;width:18px;height:18px;border-radius:50%;background:${c?'#080809':'#fff'};transition:left 200ms"></div></div></div></div>`}).join('');
 
   // Custom habits
-  document.getElementById('customList').innerHTML=custom.length?custom.map((h,i)=>{const d=!!td.nn['c_'+i];return`<div class="row" style="cursor:pointer" onclick="toggleCustom(${i})"><div class="chk ${d?'done':''}">${d?'✓':''}</div><div class="row-title" style="flex:1;${d?'text-decoration:line-through;color:var(--text3)':''}">${esc(h)}</div></div>`}).join(''):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px 0">Add habits below</div>';
+  document.getElementById('customList').innerHTML=custom.length?custom.map((h,i)=>{const d=!!td.nn['c_'+i];return`<div class="row" data-custom-idx="${i}"><div class="chk ${d?'done':''}" onclick="toggleCustom(${i})">${d?'✓':''}</div><div class="row-title" style="flex:1;cursor:pointer;${d?'text-decoration:line-through;color:var(--text3)':''}" onclick="toggleCustom(${i})">${esc(h)}</div><button onclick="editCustom(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px 6px;opacity:0.7">✏️</button><button onclick="deleteCustom(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px 6px;opacity:0.6">×</button></div>`}).join(''):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px 0">Add habits below</div>';
 }
 
 function toggleNN(id){const td=getTD();td.nn[id]=!td.nn[id];saveTD(td);renderDaily();renderDash()}
 function toggleBad(id){const td=getTD();td.bad[id]=!td.bad[id];saveTD(td);renderDaily()}
 function toggleCustom(i){const td=getTD();td.nn['c_'+i]=!td.nn['c_'+i];saveTD(td);renderDaily()}
-function addHabit(){const v=document.getElementById('newHabitInp').value.trim();if(!v)return;const h=S.get('customHabits')||[];h.push(v);S.set('customHabits',h);document.getElementById('newHabitInp').value='';renderDaily();toast('Habit added')}
+function addHabit(){const v=document.getElementById('newHabitInp').value.trim();if(!v)return;const h=S.get('customHabits')||[];h.push(v);S.set('customHabits',h);document.getElementById('newHabitInp').value='';renderDaily();renderDash();toast('Habit added')}
+
+function deleteNN(id){const nn=S.get('nn')||DEFAULT_NN;const idx=nn.findIndex(i=>i.id===id);if(idx===-1)return;nn.splice(idx,1);S.set('nn',nn);renderDaily();renderDash();toast('Task removed')}
+function editNN(id){
+  const nn=S.get('nn')||DEFAULT_NN;const item=nn.find(i=>i.id===id);if(!item)return;
+  const row=document.querySelector('[data-nn-id="'+id+'"]');if(!row)return;
+  const titleEl=row.querySelector('.row-title');const oldLabel=item.label;
+  const inp=document.createElement('input');inp.className='inp';inp.value=oldLabel;inp.style.cssText='flex:1;padding:6px 10px;font-size:13px;margin:0';
+  titleEl.replaceWith(inp);inp.focus();inp.select();
+  const save=()=>{const v=inp.value.trim();if(v&&v!==oldLabel){item.label=v;S.set('nn',nn)}renderDaily()};
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur()});
+}
+function deleteBad(id){const bad=S.get('bad')||DEFAULT_BAD;const idx=bad.findIndex(h=>h.id===id);if(idx===-1)return;bad.splice(idx,1);S.set('bad',bad);renderDaily();toast('Bad habit removed')}
+function editBad(id){
+  const bad=S.get('bad')||DEFAULT_BAD;const item=bad.find(h=>h.id===id);if(!item)return;
+  const row=document.querySelector('[data-bad-id="'+id+'"]');if(!row)return;
+  const labelEl=row.querySelector('.bad-label');if(!labelEl)return;
+  const oldLabel=item.label;
+  const inp=document.createElement('input');inp.className='inp';inp.value=oldLabel;inp.style.cssText='padding:6px 10px;font-size:13px;width:100%';
+  labelEl.replaceWith(inp);inp.focus();inp.select();
+  const save=()=>{const v=inp.value.trim();if(v&&v!==oldLabel){item.label=v;S.set('bad',bad)}renderDaily()};
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur()});
+}
+function deleteCustom(i){const h=S.get('customHabits')||[];h.splice(i,1);S.set('customHabits',h);renderDaily();renderDash();toast('Habit removed')}
+function editCustom(i){
+  const h=S.get('customHabits')||[];
+  const row=document.querySelector('[data-custom-idx="'+i+'"]');if(!row)return;
+  const titleEl=row.querySelector('.row-title');const oldVal=h[i];
+  const inp=document.createElement('input');inp.className='inp';inp.value=oldVal;inp.style.cssText='flex:1;padding:6px 10px;font-size:13px;margin:0';
+  titleEl.replaceWith(inp);inp.focus();inp.select();
+  const save=()=>{const v=inp.value.trim();if(v&&v!==oldVal){h[i]=v;S.set('customHabits',h)}renderDaily()};
+  inp.addEventListener('blur',save);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur()});
+}
 
 function markDayDone(){
   const dayData=S.get('dayData')||{};
@@ -1318,6 +1356,17 @@ function renderFood(){
   document.getElementById('proteinToday').textContent=totals.p+'g';
   document.getElementById('carbsToday').textContent=totals.c+'g';
   document.getElementById('fatsToday').textContent=totals.f+'g';
+  const CAL_LIMIT=1500;
+  const calPct=Math.min(100,(totals.cal/CAL_LIMIT)*100);
+  const calRem=CAL_LIMIT-totals.cal;
+  const pbarFill=document.getElementById('calPbarFill');
+  const limitText=document.getElementById('calLimitText');
+  if(pbarFill){
+    pbarFill.style.width=calPct+'%';
+    if(totals.cal>CAL_LIMIT){pbarFill.style.background='var(--red)';pbarFill.style.boxShadow='0 0 8px rgba(255,90,90,0.40)';limitText.innerHTML='⚠️ Over limit by '+Math.abs(calRem)+' kcal';limitText.style.color='var(--red)'}
+    else if(calPct>80){pbarFill.style.background='var(--amber)';pbarFill.style.boxShadow='0 0 8px rgba(245,158,11,0.35)';limitText.textContent=calRem+' kcal remaining';limitText.style.color='var(--amber)'}
+    else{pbarFill.style.background='var(--mint)';pbarFill.style.boxShadow='0 0 8px rgba(110,231,183,0.30)';limitText.textContent=calRem+' kcal remaining';limitText.style.color='var(--text3)'}
+  }
   document.getElementById('mealsList').innerHTML=meals.map((m,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px"><div><div style="font-size:14px;font-weight:600">${esc(m.name)}</div><div style="font-size:11px;color:var(--text3);font-family:var(--font-m)">${m.cal}kcal · P:${m.p}g · C:${m.c}g · F:${m.f}g</div></div><button onclick="deleteMeal(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px 8px">×</button></div>`).join('');
 }
 function logMeal(){const name=document.getElementById('mealNameInp').value.trim();if(!name){toast('Enter meal name');return}const meals=S.get('meals_'+todayKey())||[];meals.push({name,cal:parseFloat(document.getElementById('mealCalInp').value)||0,p:parseFloat(document.getElementById('mealProteinInp').value)||0,c:parseFloat(document.getElementById('mealCarbsInp').value)||0,f:parseFloat(document.getElementById('mealFatInp').value)||0});S.set('meals_'+todayKey(),meals);['mealNameInp','mealCalInp','mealProteinInp','mealCarbsInp','mealFatInp'].forEach(id=>document.getElementById(id).value='');renderFood();toast('Meal logged')}
@@ -1520,6 +1569,7 @@ function init(){
   if(!S.get('phils'))S.set('phils',DEFAULT_PHILS);
   if(!S.get('freeTasks'))S.set('freeTasks',DEFAULT_TASKS);
   if(!S.get('nn'))S.set('nn',DEFAULT_NN);
+  if(!S.get('bad'))S.set('bad',DEFAULT_BAD);
   initChat();
   renderDash();
   setInterval(()=>{const el=document.getElementById('daysLeft');if(el)el.textContent=daysLeft()},60000);
