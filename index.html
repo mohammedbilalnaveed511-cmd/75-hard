@@ -186,7 +186,10 @@ input,select,textarea{font-size:16px!important}
   </div>
 
   <!-- Daily preview -->
-  <div class="section-label" style="margin-top:4px">Today's Non-Negotiables</div>
+  <div style="display:flex;align-items:center;gap:10px;margin-top:4px;margin-bottom:12px">
+    <div class="section-label" style="margin-bottom:0;flex:1">Today's Non-Negotiables</div>
+    <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px;flex-shrink:0" onclick="openModal('addNNTaskModal')">+ Add Task</button>
+  </div>
   <div class="card" id="dashPreview" style="padding:12px 16px"></div>
   <button class="btn btn-ghost btn-full" style="margin-bottom:16px" onclick="go('daily')">View Full Checklist →</button>
 
@@ -201,6 +204,14 @@ input,select,textarea{font-size:16px!important}
       <input type="number" class="inp" id="wInput" placeholder="lbs" step="0.1" style="width:90px;text-align:center;font-size:18px;font-weight:700">
       <button class="btn btn-gold" style="padding:10px" onclick="saveWeight()">Save</button>
     </div>
+  </div>
+
+  <!-- Weight Chart & Goal Progress -->
+  <div class="card card-gold" id="weightChartCard" style="display:none;padding:16px">
+    <div style="font-size:10px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px">Weight History</div>
+    <canvas id="weightChart" style="display:block;max-width:100%"></canvas>
+    <div id="weightGoalInfo" style="text-align:center;margin-top:14px;padding:12px 0;border-top:1px solid rgba(255,255,255,0.07)"></div>
+    <div id="weightProgressStats" style="margin-top:10px"></div>
   </div>
 
   <!-- Latest workout -->
@@ -692,6 +703,14 @@ input,select,textarea{font-size:16px!important}
   <button class="btn btn-gold btn-full" onclick="addQuote()">Save Quote</button>
 </div></div>
 
+<div class="modal-bg" id="addNNTaskModal"><div class="modal" style="position:relative">
+  <button class="modal-close" onclick="closeModal('addNNTaskModal')">×</button>
+  <div class="modal-title">Add Task</div>
+  <div class="field"><label>Task Name</label><input class="inp" id="nnTaskLabelInp" placeholder="e.g. Drink 3 liters of water"></div>
+  <div class="field"><label>Description (optional)</label><input class="inp" id="nnTaskSubInp" placeholder="e.g. Track throughout the day"></div>
+  <button class="btn btn-gold btn-full" onclick="saveNNTask()">Add to Daily Checklist</button>
+</div></div>
+
 <div class="modal-bg" id="addTaskModal"><div class="modal" style="position:relative">
   <button class="modal-close" onclick="closeModal('addTaskModal')">×</button>
   <div class="modal-title">Add Task</div>
@@ -933,6 +952,7 @@ function renderDash(){
   else lw.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:8px 0">No sessions yet</div>';
 
   buildCal();
+  renderWeightChart();
 }
 
 function saveWeight(){
@@ -947,6 +967,87 @@ function saveWeight(){
   renderDash();toast('Weight logged: '+v+' lbs');
 }
 function clearPunishment(){S.set('punishment',{active:false});renderDash();toast('Punishment complete. Good.')}
+
+function renderWeightChart(){
+  const weights=S.get('weights')||[];
+  const card=document.getElementById('weightChartCard');
+  if(!weights.length){card.style.display='none';return}
+  card.style.display='';
+  const GOAL=142;
+  const canvas=document.getElementById('weightChart');
+  const ctx=canvas.getContext('2d');
+  const cW=Math.max(100,(card.clientWidth||380)-32);
+  const cH=180;
+  canvas.width=cW;canvas.height=cH;
+  canvas.style.width=cW+'px';canvas.style.height=cH+'px';
+  const PAD={top:18,right:12,bottom:34,left:42};
+  const gW=cW-PAD.left-PAD.right,gH=cH-PAD.top-PAD.bottom;
+  const vals=weights.map(w=>w.w);
+  const allVals=[...vals,GOAL];
+  const rawMin=Math.min(...allVals),rawMax=Math.max(...allVals);
+  const span=(rawMax-rawMin)||5;
+  const minV=rawMin-span*0.15,maxV=rawMax+span*0.15;
+  const rng=maxV-minV;
+  const tx=i=>weights.length<=1?PAD.left+gW/2:PAD.left+(i/(weights.length-1))*gW;
+  const ty=v=>PAD.top+(1-(v-minV)/rng)*gH;
+  // Grid lines
+  ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){
+    const v=minV+(i/4)*rng,y=ty(v);
+    ctx.beginPath();ctx.moveTo(PAD.left,y);ctx.lineTo(PAD.left+gW,y);ctx.stroke();
+    ctx.fillStyle='rgba(160,158,151,0.55)';ctx.font='9px DM Mono,monospace';ctx.textAlign='right';
+    ctx.fillText(v.toFixed(0),PAD.left-4,y+3);
+  }
+  // Target line 142 (mint)
+  const gy=ty(GOAL);
+  ctx.save();ctx.strokeStyle='#6EE7B7';ctx.lineWidth=1.5;ctx.setLineDash([5,4]);
+  ctx.beginPath();ctx.moveTo(PAD.left,gy);ctx.lineTo(PAD.left+gW,gy);ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle='#6EE7B7';ctx.font='bold 9px DM Mono,monospace';ctx.textAlign='left';
+  ctx.fillText('142',PAD.left+4,gy-4);
+  // Weight line (gold)
+  if(weights.length>=2){
+    ctx.save();ctx.strokeStyle='#D4A853';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
+    ctx.beginPath();
+    weights.forEach((w,i)=>{const x=tx(i),y=ty(w.w);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+    ctx.stroke();ctx.restore();
+  }
+  // Dots
+  weights.forEach((w,i)=>{
+    const x=tx(i),y=ty(w.w);
+    ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#D4A853';ctx.fill();
+    ctx.strokeStyle='rgba(8,8,9,0.9)';ctx.lineWidth=1.5;ctx.stroke();
+  });
+  // Date labels (X-axis)
+  ctx.fillStyle='rgba(160,158,151,0.55)';ctx.font='9px DM Mono,monospace';ctx.textAlign='center';
+  const show=weights.length<=6?weights.map((_,i)=>i):[0,Math.floor((weights.length-1)/2),weights.length-1];
+  show.forEach(i=>{const p=weights[i].date.split('-');ctx.fillText(p[1]+'/'+p[2],tx(i),cH-PAD.bottom+14)});
+  // Stats below chart
+  const lat=weights[weights.length-1];
+  const lbsLeft=Math.max(0,lat.w-GOAL);
+  const startW=weights[0].w;
+  const lost=startW-lat.w;
+  const totalNeed=startW-GOAL;
+  const pct=totalNeed>0?Math.min(100,Math.max(0,lost/totalNeed*100)):100;
+  document.getElementById('weightGoalInfo').innerHTML=lbsLeft>0
+    ?`<div style="font-family:var(--font-d);font-size:48px;color:var(--mint);line-height:1">${lbsLeft.toFixed(1)}</div><div style="font-size:10px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.14em;margin-top:4px">lbs to goal</div>`
+    :`<div style="font-family:var(--font-d);font-size:34px;color:var(--gold)">GOAL REACHED!</div>`;
+  document.getElementById('weightProgressStats').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="text-align:center;background:var(--bg2);border-radius:var(--r);padding:10px 6px"><div style="font-family:var(--font-d);font-size:26px;color:var(--text1);line-height:1">${lat.w}</div><div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px">Current</div></div><div style="text-align:center;background:var(--bg2);border-radius:var(--r);padding:10px 6px"><div style="font-family:var(--font-d);font-size:26px;color:var(--mint);line-height:1">142</div><div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px">Goal</div></div><div style="text-align:center;background:var(--bg2);border-radius:var(--r);padding:10px 6px"><div style="font-family:var(--font-d);font-size:26px;color:var(--mint);line-height:1">${pct.toFixed(0)}%</div><div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px">% Progress</div></div><div style="text-align:center;background:var(--bg2);border-radius:var(--r);padding:10px 6px"><div style="font-family:var(--font-d);font-size:26px;color:${lost>=0?'var(--mint)':'var(--red)'};line-height:1">${lost>=0?'-':'+'}${Math.abs(lost).toFixed(1)}</div><div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px">Total Lost</div></div></div>`;
+}
+
+function saveNNTask(){
+  const label=document.getElementById('nnTaskLabelInp').value.trim();
+  const sub=document.getElementById('nnTaskSubInp').value.trim();
+  if(!label){toast('Enter a task name');return}
+  const nn=S.get('nn')||DEFAULT_NN;
+  nn.push({id:'nn_'+Date.now(),label,sub});
+  S.set('nn',nn);
+  document.getElementById('nnTaskLabelInp').value='';
+  document.getElementById('nnTaskSubInp').value='';
+  closeModal('addNNTaskModal');
+  renderDash();renderDaily();
+  toast('Task added to checklist');
+}
 
 // ══════════════════════════════════════════════════════
 // DAILY CHECKLIST
