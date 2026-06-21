@@ -336,7 +336,13 @@ input,select,textarea{font-size:16px!important}
   <!-- Weight Chart & Goal Progress -->
   <div class="card card-gold" id="weightChartCard" style="display:none;padding:16px">
     <div style="font-size:10px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.14em;text-transform:uppercase;margin-bottom:10px">Weight History</div>
-    <canvas id="weightChart" style="display:block;max-width:100%"></canvas>
+    <div style="position:relative">
+      <div id="weightGraphScroll" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
+        <canvas id="weightChart" style="display:block"></canvas>
+      </div>
+      <div id="weightScrollFade" style="display:none;position:absolute;top:0;right:0;bottom:16px;width:56px;background:linear-gradient(to right,transparent,rgba(15,15,17,0.95));pointer-events:none;border-radius:0 var(--r) var(--r) 0"></div>
+      <div id="weightScrollText" style="display:none;text-align:right;font-size:10px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.08em;margin-top:4px">scroll for history →</div>
+    </div>
     <div id="weightGoalInfo" style="text-align:center;margin-top:14px;padding:12px 0;border-top:1px solid rgba(255,255,255,0.07)"></div>
     <div id="weightProgressStats" style="margin-top:10px"></div>
   </div>
@@ -806,6 +812,7 @@ input,select,textarea{font-size:16px!important}
 </nav>
 
 <div id="toast"></div>
+<div id="weightTooltip" style="position:fixed;display:none;z-index:600;pointer-events:none;background:rgba(22,22,24,0.97);backdrop-filter:blur(16px);border:1px solid rgba(212,168,83,0.40);border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--text1);white-space:nowrap;box-shadow:0 4px 18px rgba(0,0,0,0.55)"></div>
 
 <!-- ═══ MODALS ═══ -->
 <div class="modal-bg" id="workoutModal"><div class="modal" style="position:relative">
@@ -1140,6 +1147,8 @@ function saveWeight(){
 }
 function clearPunishment(){S.set('punishment',{active:false});renderDash();toast('Punishment complete. Good.')}
 
+let _weightDots=[];
+let _weightTipTimer;
 function renderWeightChart(){
   const weights=S.get('weights')||[];
   const card=document.getElementById('weightChartCard');
@@ -1148,19 +1157,33 @@ function renderWeightChart(){
   const GOAL=142;
   const canvas=document.getElementById('weightChart');
   const ctx=canvas.getContext('2d');
-  const cW=Math.max(100,(card.clientWidth||380)-32);
+  const THRESHOLD=11;
+  const containerW=Math.max(100,(card.clientWidth||380)-32);
+  const PAD={top:18,right:12,bottom:34,left:42};
+  const baseGW=containerW-PAD.left-PAD.right;
+  const FIXED_STEP=baseGW/Math.max(1,THRESHOLD-1);
+  const n=weights.length;
+  const gW=n<=THRESHOLD?baseGW:FIXED_STEP*(n-1);
+  const gH=180-PAD.top-PAD.bottom;
+  const cW=PAD.left+PAD.right+gW;
   const cH=180;
   canvas.width=cW;canvas.height=cH;
   canvas.style.width=cW+'px';canvas.style.height=cH+'px';
-  const PAD={top:18,right:12,bottom:34,left:42};
-  const gW=cW-PAD.left-PAD.right,gH=cH-PAD.top-PAD.bottom;
+  canvas.style.maxWidth='none';
+  // scroll hint visibility
+  const scrollDiv=document.getElementById('weightGraphScroll');
+  const needsScroll=n>THRESHOLD;
+  const scrollFade=document.getElementById('weightScrollFade');
+  const scrollText=document.getElementById('weightScrollText');
+  if(scrollFade)scrollFade.style.display=needsScroll?'block':'none';
+  if(scrollText)scrollText.style.display=needsScroll?'block':'none';
   const vals=weights.map(w=>w.w);
   const allVals=[...vals,GOAL];
   const rawMin=Math.min(...allVals),rawMax=Math.max(...allVals);
   const span=(rawMax-rawMin)||5;
   const minV=rawMin-span*0.15,maxV=rawMax+span*0.15;
   const rng=maxV-minV;
-  const tx=i=>weights.length<=1?PAD.left+gW/2:PAD.left+(i/(weights.length-1))*gW;
+  const tx=i=>n<=1?PAD.left+gW/2:PAD.left+(i/(n-1))*gW;
   const ty=v=>PAD.top+(1-(v-minV)/rng)*gH;
   // Grid lines
   ctx.strokeStyle='rgba(255,255,255,0.05)';ctx.lineWidth=1;
@@ -1178,24 +1201,49 @@ function renderWeightChart(){
   ctx.fillStyle='#6EE7B7';ctx.font='bold 9px DM Mono,monospace';ctx.textAlign='left';
   ctx.fillText('142',PAD.left+4,gy-4);
   // Weight line (gold)
-  if(weights.length>=2){
+  if(n>=2){
     ctx.save();ctx.strokeStyle='#D4A853';ctx.lineWidth=2.5;ctx.lineJoin='round';ctx.lineCap='round';
     ctx.beginPath();
     weights.forEach((w,i)=>{const x=tx(i),y=ty(w.w);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
     ctx.stroke();ctx.restore();
   }
-  // Dots
+  // Dots + store hit targets
+  _weightDots=[];
   weights.forEach((w,i)=>{
     const x=tx(i),y=ty(w.w);
+    _weightDots.push({x,y,w:w.w,date:w.date});
     ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#D4A853';ctx.fill();
     ctx.strokeStyle='rgba(8,8,9,0.9)';ctx.lineWidth=1.5;ctx.stroke();
   });
   // Date labels (X-axis)
   ctx.fillStyle='rgba(160,158,151,0.55)';ctx.font='9px DM Mono,monospace';ctx.textAlign='center';
-  const show=weights.length<=6?weights.map((_,i)=>i):[0,Math.floor((weights.length-1)/2),weights.length-1];
+  const show=n<=6?weights.map((_,i)=>i):[0,Math.floor((n-1)/2),n-1];
   show.forEach(i=>{const p=weights[i].date.split('-');ctx.fillText(p[1]+'/'+p[2],tx(i),cH-PAD.bottom+14)});
+  // Canvas click → tooltip on nearest dot
+  canvas.onclick=function(e){
+    const rect=canvas.getBoundingClientRect();
+    const cx=e.clientX-rect.left,cy=e.clientY-rect.top;
+    let best=null,minD=20;
+    _weightDots.forEach(d=>{const dist=Math.hypot(d.x-cx,d.y-cy);if(dist<minD){minD=dist;best=d}});
+    if(best){
+      const MS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const [,mo,dy]=best.date.split('-');
+      const tip=document.getElementById('weightTooltip');
+      tip.textContent=`${MS[parseInt(mo)-1]} ${parseInt(dy)} — ${best.w} lbs`;
+      tip.style.left='-9999px';tip.style.display='block';
+      const tw=tip.offsetWidth;
+      let left=e.clientX-tw/2,top=e.clientY-46;
+      if(left<8)left=8;
+      if(left+tw>window.innerWidth-8)left=window.innerWidth-tw-8;
+      if(top<8)top=e.clientY+14;
+      tip.style.left=left+'px';tip.style.top=top+'px';
+      clearTimeout(_weightTipTimer);
+      _weightTipTimer=setTimeout(()=>{tip.style.display='none'},3000);
+    }
+    e.stopPropagation();
+  };
   // Stats below chart
-  const lat=weights[weights.length-1];
+  const lat=weights[n-1];
   const lbsLeft=Math.max(0,lat.w-GOAL);
   const startW=weights[0].w;
   const lost=startW-lat.w;
@@ -1205,6 +1253,8 @@ function renderWeightChart(){
     ?`<div style="font-family:var(--font-d);font-size:48px;color:var(--mint);line-height:1">${lbsLeft.toFixed(1)}</div><div style="font-size:10px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.14em;margin-top:4px">lbs to goal</div>`
     :`<div style="font-family:var(--font-d);font-size:34px;color:var(--gold)">GOAL REACHED!</div>`;
   document.getElementById('weightProgressStats').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="text-align:center;background:var(--bg2);border-radius:var(--r);padding:10px 6px"><div style="font-family:var(--font-d);font-size:26px;color:var(--text1);line-height:1">${lat.w}</div><div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px">Current</div></div><div style="text-align:center;background:var(--bg2);border-radius:var(--r);padding:10px 6px"><div style="font-family:var(--font-d);font-size:26px;color:var(--mint);line-height:1">142</div><div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px">Goal</div></div><div style="text-align:center;background:var(--bg2);border-radius:var(--r);padding:10px 6px"><div style="font-family:var(--font-d);font-size:26px;color:var(--mint);line-height:1">${pct.toFixed(0)}%</div><div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px">% Progress</div></div><div style="text-align:center;background:var(--bg2);border-radius:var(--r);padding:10px 6px"><div style="font-family:var(--font-d);font-size:26px;color:${lost>=0?'var(--mint)':'var(--red)'};line-height:1">${lost>=0?'-':'+'}${Math.abs(lost).toFixed(1)}</div><div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;letter-spacing:0.08em;margin-top:3px">Total Lost</div></div></div>`;
+  // Auto-scroll to newest (rightmost) entry
+  if(needsScroll&&scrollDiv)scrollDiv.scrollLeft=scrollDiv.scrollWidth;
 }
 
 function saveNNTask(){
@@ -2122,6 +2172,7 @@ function init(){
   renderDash();
   setInterval(()=>{const el=document.getElementById('daysLeft');if(el)el.textContent=daysLeft()},60000);
   initSupabase();
+  document.addEventListener('click',()=>{const t=document.getElementById('weightTooltip');if(t)t.style.display='none'});
 }
 init();
 </script>
