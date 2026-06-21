@@ -139,6 +139,46 @@ textarea.inp{resize:vertical;min-height:80px;line-height:1.6}
 
 .hidden{display:none!important}
 input,select,textarea{font-size:16px!important}
+
+/* ── DAILY SUB-TABS ── */
+.daily-tabs{display:flex;gap:4px;background:rgba(255,255,255,0.04);border-radius:12px;padding:4px;margin-bottom:16px}
+.daily-tab{flex:1;padding:9px 12px;border-radius:9px;border:none;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:background 150ms,color 150ms;background:transparent;color:var(--text3)}
+.daily-tab.active{background:rgba(255,255,255,0.10);color:var(--text1)}
+
+/* ── TIME BLOCK ── */
+.tb-input-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.tb-input-row .inp{flex:1}
+.tb-chips-area{min-height:52px;padding:10px 12px;background:var(--bg1);border:1px dashed var(--border2);border-radius:var(--r);display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px;position:relative}
+.tb-chips-hint{font-size:11px;color:var(--text3);font-style:italic}
+.tb-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 8px 6px 12px;border-radius:999px;font-size:12px;font-weight:600;color:rgba(0,0,0,0.85);cursor:grab;user-select:none;touch-action:none;max-width:200px;box-shadow:0 2px 8px rgba(0,0,0,0.35);flex-shrink:0}
+.tb-chip-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px}
+.tb-chip-del{background:rgba(0,0,0,0.18);border:none;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:rgba(0,0,0,0.65);padding:0;line-height:1;flex-shrink:0}
+.tb-chip-del:hover{background:rgba(0,0,0,0.32)}
+
+.tb-timeline-wrap{background:var(--bg1);border:1px solid var(--border);border-radius:var(--r2);overflow-y:auto;max-height:min(560px,75vh);position:relative}
+.tb-timeline{position:relative;margin-left:52px;margin-right:6px;margin-top:8px;margin-bottom:8px;height:1080px}
+.tb-timeline.drag-over{background:rgba(0,212,255,0.04);border-radius:6px}
+.tb-hour-line{position:absolute;left:0;right:0;border-top:1px solid rgba(255,255,255,0.07);pointer-events:none}
+.tb-half-line{position:absolute;left:0;right:0;border-top:1px dashed rgba(255,255,255,0.03);pointer-events:none}
+.tb-hour-label{position:absolute;right:100%;padding-right:6px;transform:translateY(-50%);font-family:var(--font-m);font-size:10px;color:var(--text3);white-space:nowrap;user-select:none;pointer-events:none;text-align:right;width:44px}
+.tb-now-line{position:absolute;left:-4px;right:0;height:2px;background:var(--red);box-shadow:0 0 6px rgba(255,90,90,0.5);z-index:10;pointer-events:none;display:none}
+.tb-now-line::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;background:var(--red)}
+
+.tb-block{position:absolute;left:2px;right:2px;border-radius:8px;user-select:none;display:flex;flex-direction:column;z-index:5;overflow:visible;box-shadow:0 2px 10px rgba(0,0,0,0.4);transition:opacity 0.25s}
+.tb-block.is-done{opacity:0.45}
+.tb-block-handle{position:absolute;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;z-index:7}
+.tb-block-handle-top{top:-22px}
+.tb-block-handle-bot{bottom:-22px}
+.tb-block-handle::after{content:'';display:block;width:26px;height:3px;border-radius:2px;background:rgba(0,0,0,0.22);pointer-events:none}
+.tb-block-body{flex:1;padding:4px 26px 4px 8px;overflow:hidden;cursor:pointer;touch-action:none;position:relative;min-height:20px;display:flex;flex-direction:column;gap:1px;border-radius:8px}
+.tb-block-check-row{font-size:11px;color:rgba(0,0,0,0.6);line-height:1}
+.tb-block-time-label{font-family:var(--font-m);font-size:9px;font-weight:700;color:rgba(0,0,0,0.5);letter-spacing:0.04em;line-height:1;white-space:nowrap;overflow:hidden}
+.tb-block-title{font-size:11.5px;font-weight:700;color:rgba(0,0,0,0.85);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tb-block-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.15);border:none;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:rgba(0,0,0,0.65);padding:0;line-height:1;opacity:0;transition:opacity 0.15s,background 0.15s}
+.tb-block:hover .tb-block-del,.tb-block:focus-within .tb-block-del{opacity:1}
+.tb-block-del:hover{background:rgba(0,0,0,0.3)}
+
+.tb-drag-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:0.92;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;color:rgba(0,0,0,0.85);white-space:nowrap;transform:translate(-50%,-50%);box-shadow:0 8px 28px rgba(0,0,0,0.5);max-width:200px;overflow:hidden;text-overflow:ellipsis}
 </style>
 </head>
 <body>
@@ -245,24 +285,51 @@ input,select,textarea{font-size:16px!important}
     </div>
   </div>
 
-  <!-- Non negotiables -->
-  <div class="section-label">Non-Negotiables</div>
-  <div class="card" style="padding:12px 16px" id="nnList"></div>
-
-  <!-- Bad habits -->
-  <div class="section-label" style="margin-top:4px">Bad Habits — Stay Clean</div>
-  <div id="badList"></div>
-
-  <!-- Custom habits -->
-  <div class="section-label" style="margin-top:4px">Custom Habits</div>
-  <div class="card" style="padding:12px 16px" id="customList"></div>
-  <div style="display:flex;gap:8px;margin-bottom:16px">
-    <input class="inp" id="newHabitInp" placeholder="Add a habit to track..." style="flex:1">
-    <button class="btn btn-gold" onclick="addHabit()">Add</button>
+  <!-- Sub-tabs -->
+  <div class="daily-tabs">
+    <button class="daily-tab active" id="tabDailyChecklist" onclick="switchDailyTab('checklist')">Daily Checklist</button>
+    <button class="daily-tab" id="tabTimeBlock" onclick="switchDailyTab('timeblock')">Time Block</button>
   </div>
 
-  <!-- Mark day done -->
-  <button class="btn btn-gold btn-full" style="padding:16px;font-size:15px;margin-bottom:8px" onclick="markDayDone()">Mark Day Complete ✓</button>
+  <!-- ── CHECKLIST PANE ── -->
+  <div id="dailyChecklistPane">
+    <!-- Non negotiables -->
+    <div class="section-label">Non-Negotiables</div>
+    <div class="card" style="padding:12px 16px" id="nnList"></div>
+
+    <!-- Bad habits -->
+    <div class="section-label" style="margin-top:4px">Bad Habits — Stay Clean</div>
+    <div id="badList"></div>
+
+    <!-- Custom habits -->
+    <div class="section-label" style="margin-top:4px">Custom Habits</div>
+    <div class="card" style="padding:12px 16px" id="customList"></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input class="inp" id="newHabitInp" placeholder="Add a habit to track..." style="flex:1">
+      <button class="btn btn-gold" onclick="addHabit()">Add</button>
+    </div>
+
+    <!-- Scheduled (time-blocked) tasks — rendered by renderTBChecklist() -->
+    <div id="tbChecklistSection"></div>
+
+    <!-- Mark day done -->
+    <button class="btn btn-gold btn-full" style="padding:16px;font-size:15px;margin-bottom:8px" onclick="markDayDone()">Mark Day Complete ✓</button>
+  </div><!-- /dailyChecklistPane -->
+
+  <!-- ── TIME BLOCK PANE ── -->
+  <div id="dailyTimeblockPane" style="display:none">
+    <div class="tb-input-row">
+      <input type="text" class="inp" id="tbInput" placeholder="Task title…" autocomplete="off" />
+      <button class="btn btn-gold" id="tbNewBtn">+ New</button>
+    </div>
+    <div class="tb-chips-area" id="tbChipsArea">
+      <span class="tb-chips-hint" id="tbChipsHint">Drag a chip onto the timeline to schedule it</span>
+    </div>
+    <div class="tb-timeline-wrap" id="tbTimelineWrap">
+      <div class="tb-timeline" id="tbTimeline"></div>
+    </div>
+  </div><!-- /dailyTimeblockPane -->
+
 </div>
 
 <!-- ═══ VIEW: GYM ═══ -->
@@ -1060,8 +1127,9 @@ function renderDaily(){
   const nn=S.get('nn')||DEFAULT_NN;
   const bad=S.get('bad')||DEFAULT_BAD;
   const custom=S.get('customHabits')||[];
-  const total=nn.length+bad.length+custom.length;
-  const done=nn.filter(i=>td.nn[i.id]).length+bad.filter(h=>td.bad[h.id]).length+custom.filter((_,i)=>td.nn['c_'+i]).length;
+  const tbTasks=S.get('tb_'+todayKey())||[];
+  const total=nn.length+bad.length+custom.length+tbTasks.length;
+  const done=nn.filter(i=>td.nn[i.id]).length+bad.filter(h=>td.bad[h.id]).length+custom.filter((_,i)=>td.nn['c_'+i]).length+tbTasks.filter(t=>t.done).length;
   const pct=total>0?Math.round(done/total*100):0;
 
   // Ring
@@ -1078,6 +1146,8 @@ function renderDaily(){
 
   // Custom habits
   document.getElementById('customList').innerHTML=custom.length?custom.map((h,i)=>{const d=!!td.nn['c_'+i];return`<div class="row" data-custom-idx="${i}"><div class="chk ${d?'done':''}" onclick="toggleCustom(${i})">${d?'✓':''}</div><div class="row-title" style="flex:1;cursor:pointer;${d?'text-decoration:line-through;color:var(--text3)':''}" onclick="toggleCustom(${i})">${esc(h)}</div><button onclick="editCustom(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:13px;padding:4px 6px;opacity:0.7">✏️</button><button onclick="deleteCustom(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px 6px;opacity:0.6">×</button></div>`}).join(''):'<div style="font-size:12px;color:var(--text3);text-align:center;padding:8px 0">Add habits below</div>';
+
+  renderTBChecklist();
 }
 
 function toggleNN(id){const td=getTD();td.nn[id]=!td.nn[id];saveTD(td);renderDaily();renderDash()}
@@ -1120,8 +1190,11 @@ function editCustom(i){
 function markDayDone(){
   const dayData=S.get('dayData')||{};
   const td=getTD();const nn=S.get('nn')||DEFAULT_NN;
-  const done=nn.filter(i=>td.nn[i.id]).length;
-  const complete=done>=nn.length;
+  const tbTasks=S.get('tb_'+todayKey())||[];
+  const nnDone=nn.filter(i=>td.nn[i.id]).length;
+  const tbDone=tbTasks.filter(t=>t.done).length;
+  const complete=nnDone>=nn.length&&(tbTasks.length===0||tbDone>=tbTasks.length);
+  const done=nnDone;
   dayData[todayKey()]=complete?'done':'missed';
   S.set('dayData',dayData);
   if(!complete){
@@ -1520,7 +1593,8 @@ const SYNC_KEYS = [
   'h75_books', 'h75_phils', 'h75_quotes', 'h75_reflections',
   'h75_deals', 'h75_expenses', 'h75_freeTasks', 'h75_nn',
   'h75_customHabits', 'h75_punishment', 'h75_budgetIncome',
-  'h75_pages_', 'h75_meals_', 'h75_calls_'
+  'h75_pages_', 'h75_meals_', 'h75_calls_',
+  'h75_tb_', 'h75_tb_chips_'
 ];
 
 function supaReady(){
@@ -1661,6 +1735,274 @@ async function initSupabase(){
     console.log('Supabase sync active ✓');
   }catch(e){ console.warn('Supabase init failed:', e.message); }
 }
+
+// ══════════════════════════════════════════════════════
+// TIME BLOCK
+// ══════════════════════════════════════════════════════
+const TB_COLORS=['#00D4FF','#6EE7B7','#D4A853','#FF5A5A','#A78BFA','#F59E0B'];
+const TB_START=6*60;   // 6 AM in minutes from midnight
+const TB_END=24*60;    // midnight
+const TB_PPM=1;        // pixels per minute
+
+function tbSnapMin(m){return Math.round(m/15)*15}
+
+function tbFmt(minutes){
+  const h=Math.floor(minutes/60),m=minutes%60;
+  const ampm=h<12?'AM':'PM',hh=h%12||12;
+  return m===0?hh+' '+ampm:hh+':'+(m<10?'0':'')+m+' '+ampm;
+}
+
+function tbNextColor(){
+  const placed=(S.get('tb_'+todayKey())||[]).length;
+  const chips=(S.get('tb_chips_'+todayKey())||[]).length;
+  return TB_COLORS[(placed+chips)%TB_COLORS.length];
+}
+
+// ── Sub-tab switching ────────────────────────────────
+function switchDailyTab(tab){
+  const isCL=tab==='checklist';
+  document.getElementById('tabDailyChecklist').classList.toggle('active',isCL);
+  document.getElementById('tabTimeBlock').classList.toggle('active',!isCL);
+  document.getElementById('dailyChecklistPane').style.display=isCL?'':'none';
+  document.getElementById('dailyTimeblockPane').style.display=isCL?'none':'';
+  if(!isCL){tbBuildGrid();renderTBTimeline();renderTBChips();tbScrollToNow()}
+}
+
+// ── Checklist section for TB tasks ──────────────────
+function renderTBChecklist(){
+  const el=document.getElementById('tbChecklistSection');
+  if(!el)return;
+  const tasks=S.get('tb_'+todayKey())||[];
+  if(!tasks.length){el.innerHTML='';return}
+  el.innerHTML=`<div class="section-label" style="margin-top:4px">Scheduled Tasks</div><div class="card" style="padding:12px 16px">${
+    tasks.map((t,i)=>`<div class="row" data-tb-idx="${i}">
+      <div class="chk ${t.done?'done':''}" onclick="toggleTBTask(${i})">${t.done?'✓':''}</div>
+      <div class="row-info" style="cursor:pointer;flex:1" onclick="toggleTBTask(${i})">
+        <div class="row-title" style="${t.done?'text-decoration:line-through;color:var(--text3)':''}">${esc(t.text)}</div>
+        <div class="row-sub" style="display:flex;align-items:center;gap:5px">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${t.tbColor};flex-shrink:0"></span>
+          ${tbFmt(t.startTime)} – ${tbFmt(t.endTime)}
+        </div>
+      </div>
+      <button onclick="deleteTBTask(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px 6px;opacity:0.6">×</button>
+    </div>`).join('')
+  }</div>`;
+}
+
+function toggleTBTask(idx){
+  const tasks=S.get('tb_'+todayKey())||[];
+  if(!tasks[idx])return;
+  tasks[idx].done=!tasks[idx].done;
+  S.set('tb_'+todayKey(),tasks);
+  renderDaily();
+  renderTBTimeline();
+  toast(tasks[idx].done?'✓ Task done':'Task unchecked');
+}
+
+function deleteTBTask(idx){
+  const tasks=S.get('tb_'+todayKey())||[];
+  tasks.splice(idx,1);
+  S.set('tb_'+todayKey(),tasks);
+  renderDaily();
+  renderTBTimeline();
+}
+
+// ── Chips (unplaced tasks) ───────────────────────────
+function renderTBChips(){
+  const area=document.getElementById('tbChipsArea');
+  const hint=document.getElementById('tbChipsHint');
+  if(!area)return;
+  area.querySelectorAll('.tb-chip').forEach(c=>c.remove());
+  const chips=S.get('tb_chips_'+todayKey())||[];
+  if(hint)hint.style.display=chips.length?'none':'inline';
+  chips.forEach(data=>{const chip=tbBuildChip(data);area.appendChild(chip)});
+}
+
+function tbBuildChip(data){
+  const chip=document.createElement('div');
+  chip.className='tb-chip';chip.style.background=data.color;
+  const label=document.createElement('span');label.className='tb-chip-label';label.textContent=data.text;
+  const del=document.createElement('button');del.className='tb-chip-del';del.textContent='×';
+  del.addEventListener('click',e=>{
+    e.stopPropagation();
+    const chips=S.get('tb_chips_'+todayKey())||[];
+    S.set('tb_chips_'+todayKey(),chips.filter(c=>c.id!==data.id));
+    renderTBChips();
+  });
+  chip.appendChild(label);chip.appendChild(del);
+  tbWireChipDrag(chip,data);
+  return chip;
+}
+
+document.getElementById('tbNewBtn').addEventListener('click',()=>{
+  const inp=document.getElementById('tbInput');
+  const text=inp.value.trim();if(!text)return;
+  const chips=S.get('tb_chips_'+todayKey())||[];
+  chips.push({id:'c'+Date.now(),text,color:tbNextColor()});
+  S.set('tb_chips_'+todayKey(),chips);
+  inp.value='';renderTBChips();
+});
+document.getElementById('tbInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('tbNewBtn').click()});
+
+// ── Chip drag to timeline ────────────────────────────
+function tbWireChipDrag(chipEl,data){
+  chipEl.addEventListener('pointerdown',e=>{
+    if(e.target.classList.contains('tb-chip-del'))return;
+    e.preventDefault();chipEl.setPointerCapture(e.pointerId);
+    const ghost=document.createElement('div');
+    ghost.className='tb-drag-ghost';ghost.textContent=data.text;ghost.style.background=data.color;
+    ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';
+    document.body.appendChild(ghost);
+    function onMove(e){
+      ghost.style.left=e.clientX+'px';ghost.style.top=e.clientY+'px';
+      const tl=document.getElementById('tbTimeline');if(!tl)return;
+      const r=tl.getBoundingClientRect();
+      tl.classList.toggle('drag-over',e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom);
+    }
+    function onUp(e){
+      chipEl.removeEventListener('pointermove',onMove);chipEl.removeEventListener('pointerup',onUp);chipEl.removeEventListener('pointercancel',onUp);
+      ghost.remove();
+      const tl=document.getElementById('tbTimeline');const wrap=document.getElementById('tbTimelineWrap');
+      if(!tl||!wrap)return;tl.classList.remove('drag-over');
+      const r=tl.getBoundingClientRect();
+      if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)return;
+      const relY=(e.clientY-r.top)+wrap.scrollTop;
+      const rawStart=Math.floor(relY/TB_PPM)+TB_START;
+      const start=tbSnapMin(Math.max(TB_START,Math.min(TB_END-60,rawStart)));
+      const end=Math.min(TB_END,start+60);
+      // Remove chip, add task
+      const chips=S.get('tb_chips_'+todayKey())||[];
+      S.set('tb_chips_'+todayKey(),chips.filter(c=>c.id!==data.id));
+      const tasks=S.get('tb_'+todayKey())||[];
+      tasks.push({id:'tb'+Date.now(),text:data.text,done:false,tbColor:data.color,startTime:start,endTime:end});
+      S.set('tb_'+todayKey(),tasks);
+      renderDaily();renderTBChips();renderTBTimeline();
+    }
+    chipEl.addEventListener('pointermove',onMove);chipEl.addEventListener('pointerup',onUp);chipEl.addEventListener('pointercancel',onUp);
+  });
+}
+
+// ── Timeline grid (built once) ───────────────────────
+function tbBuildGrid(){
+  const tl=document.getElementById('tbTimeline');
+  if(!tl||tl.querySelector('.tb-hour-line'))return;
+  for(let h=TB_START/60;h<=TB_END/60;h++){
+    const top=(h*60-TB_START)*TB_PPM;
+    const line=document.createElement('div');line.className='tb-hour-line';line.style.top=top+'px';tl.appendChild(line);
+    if(h<TB_END/60){
+      const lbl=document.createElement('div');lbl.className='tb-hour-label';lbl.style.top=top+'px';lbl.textContent=tbFmt(h*60);tl.appendChild(lbl);
+      const half=document.createElement('div');half.className='tb-half-line';half.style.top=(top+30*TB_PPM)+'px';tl.appendChild(half);
+    }
+  }
+  const nl=document.createElement('div');nl.className='tb-now-line';nl.id='tbNowLine';tl.appendChild(nl);
+}
+
+function tbUpdateNowLine(){
+  const el=document.getElementById('tbNowLine');if(!el)return;
+  const now=new Date(),min=now.getHours()*60+now.getMinutes();
+  if(min<TB_START||min>TB_END){el.style.display='none';return}
+  el.style.display='block';el.style.top=((min-TB_START)*TB_PPM)+'px';
+}
+
+function tbScrollToNow(){
+  const wrap=document.getElementById('tbTimelineWrap');if(!wrap)return;
+  const now=new Date(),min=Math.max(TB_START,Math.min(TB_END,now.getHours()*60+now.getMinutes()));
+  wrap.scrollTop=Math.max(0,(min-TB_START)*TB_PPM-wrap.clientHeight/2);
+}
+
+// ── Render timeline blocks ───────────────────────────
+function renderTBTimeline(){
+  const tl=document.getElementById('tbTimeline');if(!tl)return;
+  tbBuildGrid();
+  tl.querySelectorAll('.tb-block').forEach(b=>b.remove());
+  const tasks=S.get('tb_'+todayKey())||[];
+  tasks.forEach((t,idx)=>{if(t.startTime==null||t.endTime==null)return;tl.appendChild(tbBuildBlock(t,idx))});
+  tbUpdateNowLine();
+}
+
+// ── Build a block element ────────────────────────────
+function tbBuildBlock(task,idx){
+  const top=(task.startTime-TB_START)*TB_PPM;
+  const height=Math.max(15,(task.endTime-task.startTime)*TB_PPM);
+  const color=task.tbColor||TB_COLORS[0];
+  const block=document.createElement('div');
+  block.className='tb-block'+(task.done?' is-done':'');
+  block.style.top=top+'px';block.style.height=height+'px';block.style.background=color;
+  // Handles
+  const hTop=document.createElement('div');hTop.className='tb-block-handle tb-block-handle-top';
+  const hBot=document.createElement('div');hBot.className='tb-block-handle tb-block-handle-bot';
+  // Body
+  const body=document.createElement('div');body.className='tb-block-body';
+  if(task.done){const chk=document.createElement('div');chk.className='tb-block-check-row';chk.textContent='✓ Done';body.appendChild(chk)}
+  const timeEl=document.createElement('div');timeEl.className='tb-block-time-label';timeEl.textContent=tbFmt(task.startTime)+' – '+tbFmt(task.endTime);body.appendChild(timeEl);
+  const titleEl=document.createElement('div');titleEl.className='tb-block-title';titleEl.textContent=task.text;body.appendChild(titleEl);
+  const delBtn=document.createElement('button');delBtn.className='tb-block-del';delBtn.textContent='×';delBtn.title='Delete task';
+  delBtn.addEventListener('click',e=>{e.stopPropagation();deleteTBTask(idx)});
+  body.appendChild(delBtn);
+  block.appendChild(hTop);block.appendChild(body);block.appendChild(hBot);
+  tbWireResize(hTop,block,idx,true);
+  tbWireResize(hBot,block,idx,false);
+  tbWireMove(body,block,idx);
+  return block;
+}
+
+// ── Block resize (44px touch handles) ───────────────
+function tbWireResize(handleEl,blockEl,idx,isTop){
+  handleEl.addEventListener('pointerdown',e=>{
+    e.preventDefault();e.stopPropagation();handleEl.setPointerCapture(e.pointerId);
+    const startY=e.clientY,initTop=parseFloat(blockEl.style.top),initH=parseFloat(blockEl.style.height);
+    function onMove(e){
+      const dy=e.clientY-startY;
+      let curTop=initTop,curH=initH;
+      if(isTop){curTop=Math.max(0,Math.min(initTop+initH-15,initTop+dy));curH=initTop+initH-curTop}
+      else{curH=Math.max(15,Math.min((TB_END-TB_START)*TB_PPM-initTop,initH+dy))}
+      blockEl.style.top=curTop+'px';blockEl.style.height=curH+'px';
+      const timeEl=blockEl.querySelector('.tb-block-time-label');if(timeEl){const s=Math.round(curTop/TB_PPM)+TB_START,x=Math.round((curTop+curH)/TB_PPM)+TB_START;timeEl.textContent=tbFmt(s)+' – '+tbFmt(x)}
+    }
+    function onUp(){
+      handleEl.removeEventListener('pointermove',onMove);handleEl.removeEventListener('pointerup',onUp);handleEl.removeEventListener('pointercancel',onUp);
+      const curTop=parseFloat(blockEl.style.top),curH=parseFloat(blockEl.style.height);
+      const newStart=tbSnapMin(Math.max(TB_START,Math.round(curTop/TB_PPM)+TB_START));
+      const newEnd=tbSnapMin(Math.min(TB_END,Math.max(newStart+15,Math.round((curTop+curH)/TB_PPM)+TB_START)));
+      const tasks=S.get('tb_'+todayKey())||[];
+      if(tasks[idx]){tasks[idx].startTime=newStart;tasks[idx].endTime=newEnd;S.set('tb_'+todayKey(),tasks);renderDaily();renderTBTimeline()}
+    }
+    handleEl.addEventListener('pointermove',onMove);handleEl.addEventListener('pointerup',onUp);handleEl.addEventListener('pointercancel',onUp);
+  });
+}
+
+// ── Block move + tap-to-toggle done ─────────────────
+function tbWireMove(bodyEl,blockEl,idx){
+  bodyEl.addEventListener('pointerdown',e=>{
+    if(e.target.classList.contains('tb-block-del'))return;
+    e.preventDefault();bodyEl.setPointerCapture(e.pointerId);
+    const startY=e.clientY,initTop=parseFloat(blockEl.style.top),initH=parseFloat(blockEl.style.height);
+    let moved=false;
+    const tasks0=S.get('tb_'+todayKey())||[];
+    const dur=tasks0[idx]?(tasks0[idx].endTime-tasks0[idx].startTime):60;
+    function onMove(e){
+      const dy=e.clientY-startY;if(!moved&&Math.abs(dy)<5)return;moved=true;
+      const maxTop=(TB_END-TB_START)*TB_PPM-initH;
+      blockEl.style.top=Math.max(0,Math.min(maxTop,initTop+dy))+'px';
+      const timeEl=blockEl.querySelector('.tb-block-time-label');
+      if(timeEl){const s=Math.round(parseFloat(blockEl.style.top)/TB_PPM)+TB_START;timeEl.textContent=tbFmt(s)+' – '+tbFmt(s+dur)}
+    }
+    function onUp(){
+      bodyEl.removeEventListener('pointermove',onMove);bodyEl.removeEventListener('pointerup',onUp);bodyEl.removeEventListener('pointercancel',onUp);
+      if(!moved){
+        // tap → toggle done
+        toggleTBTask(idx);return;
+      }
+      const curTop=parseFloat(blockEl.style.top);
+      const newStart=tbSnapMin(Math.max(TB_START,Math.min(TB_END-15,Math.round(curTop/TB_PPM)+TB_START)));
+      const tasks=S.get('tb_'+todayKey())||[];
+      if(tasks[idx]){const d=tasks[idx].endTime-tasks[idx].startTime;tasks[idx].startTime=newStart;tasks[idx].endTime=Math.min(TB_END,newStart+d);S.set('tb_'+todayKey(),tasks);renderDaily();renderTBTimeline()}
+    }
+    bodyEl.addEventListener('pointermove',onMove);bodyEl.addEventListener('pointerup',onUp);bodyEl.addEventListener('pointercancel',onUp);
+  });
+}
+
+setInterval(tbUpdateNowLine,60000);
 
 // ══════════════════════════════════════════════════════
 // INIT
