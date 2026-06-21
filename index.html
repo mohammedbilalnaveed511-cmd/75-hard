@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#080809">
 <title>75 Hard — Summer Ascent</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -179,9 +179,96 @@ input,select,textarea{font-size:16px!important}
 .tb-block-del:hover{background:rgba(0,0,0,0.3)}
 
 .tb-drag-ghost{position:fixed;pointer-events:none;z-index:9999;opacity:0.92;border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:600;color:rgba(0,0,0,0.85);white-space:nowrap;transform:translate(-50%,-50%);box-shadow:0 8px 28px rgba(0,0,0,0.5);max-width:200px;overflow:hidden;text-overflow:ellipsis}
+
+/* ── TOP NAV — hidden on mobile, shown on desktop ── */
+#topNav{display:none}
+.desk-grid-2{display:block}
+
+/* ═══════════════════════════════════════════════════════
+   DESKTOP LAYOUT  ≥ 768 px
+   ═══════════════════════════════════════════════════════ */
+@media(min-width:768px){
+
+  /* ── TOP NAV ── */
+  #topNav{
+    display:flex;align-items:center;
+    position:fixed;top:0;left:0;right:0;z-index:200;
+    height:58px;padding:0 32px;gap:2px;
+    background:rgba(8,8,9,0.97);backdrop-filter:blur(24px);
+    border-bottom:1px solid var(--border);
+  }
+  .tn-logo{
+    font-family:var(--font-d);font-size:19px;letter-spacing:0.06em;
+    color:var(--gold);white-space:nowrap;margin-right:20px;flex-shrink:0;
+    text-decoration:none;
+  }
+  .tn-item{
+    display:flex;align-items:center;gap:5px;
+    padding:7px 12px;border-radius:var(--r);border:none;
+    font-family:var(--font);font-size:12px;font-weight:600;
+    background:transparent;color:var(--text3);cursor:pointer;
+    transition:background 150ms,color 150ms;white-space:nowrap;
+  }
+  .tn-item:hover{background:rgba(255,255,255,0.05);color:var(--text2)}
+  .tn-item.active{background:rgba(212,168,83,0.13);color:var(--gold)}
+
+  /* ── HIDE BOTTOM NAV ── */
+  #bottomNav{display:none!important}
+
+  /* ── APP SHELL ── */
+  #app{max-width:1320px;padding:78px 48px 60px}
+  .view{padding-bottom:0}
+
+  /* ── TOAST — move up from bottom nav area ── */
+  #toast{bottom:28px}
+
+  /* ── MODALS — centered on desktop ── */
+  .modal-bg{align-items:center;justify-content:center;padding:24px}
+  .modal{border-radius:var(--r3);max-width:580px;max-height:82vh}
+
+  /* ── TYPOGRAPHY BUMP ── */
+  .page-title{font-size:58px}
+
+  /* ── CARD HOVER ── */
+  .card{transition:border-color 200ms}
+  .card:hover{border-color:var(--border2)}
+
+  /* ── DESKTOP TWO-COLUMN WRAPPER ── */
+  .desk-grid-2{
+    display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;
+    margin-bottom:4px;
+  }
+  .desk-grid-2>*{min-width:0}
+
+  /* ── READING PAGE — dynamic list grids ── */
+  #booksList{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  #booksList>.card{margin-bottom:0}
+  #philList{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #philList>.card{margin-bottom:0}
+
+  /* ── TIME BLOCK — taller timeline on desktop ── */
+  .tb-timeline-wrap{max-height:700px}
+
+  /* ── COACH — sticky bar sits at bottom of view, no bottom-nav gap ── */
+  #chatBar{bottom:0}
+}
 </style>
 </head>
 <body>
+
+<!-- DESKTOP TOP NAV (hidden on mobile via CSS) -->
+<nav id="topNav">
+  <span class="tn-logo">SUMMER ASCENT</span>
+  <button class="tn-item active" data-v="dash"      onclick="go('dash',this)">⚔️ 75 Hard</button>
+  <button class="tn-item"        data-v="daily"     onclick="go('daily',this)">✅ Daily</button>
+  <button class="tn-item"        data-v="gym"       onclick="go('gym',this)">🏋️ Gym</button>
+  <button class="tn-item"        data-v="reading"   onclick="go('reading',this)">📖 Books</button>
+  <button class="tn-item"        data-v="spiritual" onclick="go('spiritual',this)">🌙 Deen</button>
+  <button class="tn-item"        data-v="income"    onclick="go('income',this)">💰 Income</button>
+  <button class="tn-item"        data-v="coach"     onclick="go('coach',this)">🤖 Coach</button>
+  <button class="tn-item"        data-v="more"      onclick="go('more',this)">⚙️ More</button>
+</nav>
+
 <div id="app">
 
 <!-- ═══ VIEW: DASHBOARD ═══ -->
@@ -355,35 +442,39 @@ input,select,textarea{font-size:16px!important}
     </div>
   </div>
 
-  <!-- Rest timer -->
-  <div class="card" style="display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,rgba(125,211,252,0.08),rgba(125,211,252,0.03));border-color:rgba(125,211,252,0.2);margin-bottom:12px">
+  <div class="desk-grid-2">
     <div>
-      <div style="font-size:10px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px">Rest Timer</div>
-      <div style="font-family:var(--font-d);font-size:46px;color:var(--blue);line-height:1" id="restDisp">0:00</div>
+      <!-- Rest timer -->
+      <div class="card" style="display:flex;align-items:center;gap:16px;background:linear-gradient(135deg,rgba(125,211,252,0.08),rgba(125,211,252,0.03));border-color:rgba(125,211,252,0.2);margin-bottom:12px">
+        <div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:4px">Rest Timer</div>
+          <div style="font-family:var(--font-d);font-size:46px;color:var(--blue);line-height:1" id="restDisp">0:00</div>
+        </div>
+        <div style="flex:1">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
+            <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" onclick="setRest(60)">1m</button>
+            <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" onclick="setRest(90)">90s</button>
+            <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" onclick="setRest(120)">2m</button>
+            <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" onclick="setRest(180)">3m</button>
+          </div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" style="padding:7px 14px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" id="restToggleBtn" onclick="toggleRest()">Start</button>
+            <button class="btn btn-ghost" style="padding:7px 14px;font-size:12px" onclick="resetRest()">Reset</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div style="flex:1">
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px">
-        <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" onclick="setRest(60)">1m</button>
-        <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" onclick="setRest(90)">90s</button>
-        <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" onclick="setRest(120)">2m</button>
-        <button class="btn btn-ghost" style="padding:7px 12px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" onclick="setRest(180)">3m</button>
+    <div>
+      <!-- Split select -->
+      <div class="section-label">Today's Split</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+        <button class="btn btn-ghost" id="splitBtnA" onclick="selectSplit('A')" style="padding:14px;font-size:13px">Back · Shoulders · Bis</button>
+        <button class="btn btn-ghost" id="splitBtnB" onclick="selectSplit('B')" style="padding:14px;font-size:13px">Chest · Triceps</button>
       </div>
-      <div style="display:flex;gap:6px">
-        <button class="btn btn-ghost" style="padding:7px 14px;font-size:12px;border-color:rgba(125,211,252,0.25);color:var(--blue)" id="restToggleBtn" onclick="toggleRest()">Start</button>
-        <button class="btn btn-ghost" style="padding:7px 14px;font-size:12px" onclick="resetRest()">Reset</button>
-      </div>
+      <button class="btn btn-gold btn-full" style="margin-bottom:12px" onclick="openWorkoutModal()">+ Start Workout Session</button>
+      <button class="btn btn-ghost btn-full" style="margin-bottom:16px" onclick="openPRModal()">📊 View PRs & Progress</button>
     </div>
   </div>
-
-  <!-- Split select -->
-  <div class="section-label">Today's Split</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
-    <button class="btn btn-ghost" id="splitBtnA" onclick="selectSplit('A')" style="padding:14px;font-size:13px">Back · Shoulders · Bis</button>
-    <button class="btn btn-ghost" id="splitBtnB" onclick="selectSplit('B')" style="padding:14px;font-size:13px">Chest · Triceps</button>
-  </div>
-
-  <button class="btn btn-gold btn-full" style="margin-bottom:12px" onclick="openWorkoutModal()">+ Start Workout Session</button>
-  <button class="btn btn-ghost btn-full" style="margin-bottom:16px" onclick="openPRModal()">📊 View PRs & Progress</button>
 
   <!-- Latest session -->
   <div class="section-label">Latest Session</div>
@@ -464,27 +555,32 @@ input,select,textarea{font-size:16px!important}
   <div class="section-label" style="margin-top:4px">Quran</div>
   <div class="card" style="padding:12px 16px" id="quranChecks"></div>
 
-  <!-- Dhikr morning -->
-  <div class="section-label" style="margin-top:4px">Morning Dhikr — Alhamdulillah</div>
-  <div class="card" style="text-align:center;padding:20px">
-    <div style="font-family:var(--font-d);font-size:76px;color:var(--gold);line-height:1" id="dhikrMorningNum">0</div>
-    <div style="font-size:13px;color:var(--text2);margin:8px 0 16px">/ 100 — Morning</div>
-    <button class="btn btn-gold btn-full" style="font-size:16px;padding:16px;letter-spacing:0.04em" onclick="tapDhikr('morning')">الحمد لله</button>
-    <div style="display:flex;justify-content:space-between;margin-top:10px">
-      <span style="font-size:12px;color:var(--text3)" id="dhikrMorningPct">0%</span>
-      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="resetDhikr('morning')">Reset</button>
+  <div class="desk-grid-2">
+    <div>
+      <!-- Dhikr morning -->
+      <div class="section-label" style="margin-top:4px">Morning Dhikr — Alhamdulillah</div>
+      <div class="card" style="text-align:center;padding:20px">
+        <div style="font-family:var(--font-d);font-size:76px;color:var(--gold);line-height:1" id="dhikrMorningNum">0</div>
+        <div style="font-size:13px;color:var(--text2);margin:8px 0 16px">/ 100 — Morning</div>
+        <button class="btn btn-gold btn-full" style="font-size:16px;padding:16px;letter-spacing:0.04em" onclick="tapDhikr('morning')">الحمد لله</button>
+        <div style="display:flex;justify-content:space-between;margin-top:10px">
+          <span style="font-size:12px;color:var(--text3)" id="dhikrMorningPct">0%</span>
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="resetDhikr('morning')">Reset</button>
+        </div>
+      </div>
     </div>
-  </div>
-
-  <!-- Dhikr evening -->
-  <div class="section-label" style="margin-top:4px">Evening Dhikr — Alhamdulillah</div>
-  <div class="card" style="text-align:center;padding:20px">
-    <div style="font-family:var(--font-d);font-size:76px;color:var(--gold);line-height:1" id="dhikrEveningNum">0</div>
-    <div style="font-size:13px;color:var(--text2);margin:8px 0 16px">/ 100 — Evening</div>
-    <button class="btn btn-gold btn-full" style="font-size:16px;padding:16px;letter-spacing:0.04em" onclick="tapDhikr('evening')">الحمد لله</button>
-    <div style="display:flex;justify-content:space-between;margin-top:10px">
-      <span style="font-size:12px;color:var(--text3)" id="dhikrEveningPct">0%</span>
-      <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="resetDhikr('evening')">Reset</button>
+    <div>
+      <!-- Dhikr evening -->
+      <div class="section-label" style="margin-top:4px">Evening Dhikr — Alhamdulillah</div>
+      <div class="card" style="text-align:center;padding:20px">
+        <div style="font-family:var(--font-d);font-size:76px;color:var(--gold);line-height:1" id="dhikrEveningNum">0</div>
+        <div style="font-size:13px;color:var(--text2);margin:8px 0 16px">/ 100 — Evening</div>
+        <button class="btn btn-gold btn-full" style="font-size:16px;padding:16px;letter-spacing:0.04em" onclick="tapDhikr('evening')">الحمد لله</button>
+        <div style="display:flex;justify-content:space-between;margin-top:10px">
+          <span style="font-size:12px;color:var(--text3)" id="dhikrEveningPct">0%</span>
+          <button class="btn btn-ghost" style="padding:6px 12px;font-size:12px" onclick="resetDhikr('evening')">Reset</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -533,42 +629,47 @@ input,select,textarea{font-size:16px!important}
   </div>
 
   <!-- Log calls -->
-  <div class="section-label">Log Activity</div>
-  <div class="card" style="margin-bottom:12px">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-      <div class="field" style="margin-bottom:0">
-        <label>Calls Made</label>
-        <div style="display:flex;gap:6px">
-          <input type="number" class="inp" id="callsInp" placeholder="40" style="flex:1;text-align:center;font-size:18px;font-weight:700">
-          <button class="btn btn-gold" style="padding:10px 14px" onclick="logCalls()">+</button>
-        </div>
-      </div>
-      <div class="field" style="margin-bottom:0">
-        <label>Prospects Booked</label>
-        <div style="display:flex;gap:6px">
-          <input type="number" class="inp" id="prospectsInp" placeholder="1" style="flex:1;text-align:center;font-size:18px;font-weight:700">
-          <button class="btn btn-gold" style="padding:10px 14px" onclick="logProspects()">+</button>
+  <div class="desk-grid-2">
+    <div>
+      <div class="section-label">Log Activity</div>
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="field" style="margin-bottom:0">
+            <label>Calls Made</label>
+            <div style="display:flex;gap:6px">
+              <input type="number" class="inp" id="callsInp" placeholder="40" style="flex:1;text-align:center;font-size:18px;font-weight:700">
+              <button class="btn btn-gold" style="padding:10px 14px" onclick="logCalls()">+</button>
+            </div>
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>Prospects Booked</label>
+            <div style="display:flex;gap:6px">
+              <input type="number" class="inp" id="prospectsInp" placeholder="1" style="flex:1;text-align:center;font-size:18px;font-weight:700">
+              <button class="btn btn-gold" style="padding:10px 14px" onclick="logProspects()">+</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Log deal -->
-  <div class="section-label">Log Closed Deal</div>
-  <div class="card" style="margin-bottom:12px">
-    <div class="field"><label>Client / Description</label><input class="inp" id="dealNameInp" placeholder="Client name or deal description"></div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <div class="field" style="flex:1;margin-bottom:0"><label>Amount $</label><input type="number" class="inp" id="dealAmtInp" placeholder="500"></div>
-      <div class="field" style="flex:1;margin-bottom:0"><label>Source</label>
-        <select class="inp" id="dealSrcInp">
-          <option value="cold-call">Cold Call</option>
-          <option value="ai-avatar">AI Avatar</option>
-          <option value="airport">Airport Job</option>
-          <option value="other">Other</option>
-        </select>
+    <div>
+      <!-- Log deal -->
+      <div class="section-label">Log Closed Deal</div>
+      <div class="card" style="margin-bottom:12px">
+        <div class="field"><label>Client / Description</label><input class="inp" id="dealNameInp" placeholder="Client name or deal description"></div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <div class="field" style="flex:1;margin-bottom:0"><label>Amount $</label><input type="number" class="inp" id="dealAmtInp" placeholder="500"></div>
+          <div class="field" style="flex:1;margin-bottom:0"><label>Source</label>
+            <select class="inp" id="dealSrcInp">
+              <option value="cold-call">Cold Call</option>
+              <option value="ai-avatar">AI Avatar</option>
+              <option value="airport">Airport Job</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-mint btn-full" onclick="logDeal()">Record Deal 💰</button>
       </div>
     </div>
-    <button class="btn btn-mint btn-full" onclick="logDeal()">Record Deal 💰</button>
   </div>
 
   <!-- Deals list -->
@@ -589,7 +690,7 @@ input,select,textarea{font-size:16px!important}
     <input class="inp" id="apiKeyInp" placeholder="sk-ant-... (optional)" style="margin-top:8px;font-size:12px" type="password">
   </div>
   <div id="chatMsgs" style="display:flex;flex-direction:column;gap:12px;margin-bottom:12px"></div>
-  <div style="position:sticky;bottom:84px;background:var(--bg);padding:12px 0;border-top:1px solid var(--border);display:flex;gap:8px">
+  <div id="chatBar" style="position:sticky;bottom:84px;background:var(--bg);padding:12px 0;border-top:1px solid var(--border);display:flex;gap:8px">
     <input class="inp" id="chatInp" placeholder="Ask your coach anything..." style="flex:1;border-radius:999px;padding:12px 18px" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat()}">
     <button class="btn btn-gold" style="border-radius:999px;padding:12px 20px" onclick="sendChat()">Send</button>
   </div>
@@ -602,43 +703,46 @@ input,select,textarea{font-size:16px!important}
     <div class="page-sub">Food · Budget · Free Time</div>
   </div>
 
-  <!-- Food log -->
-  <div class="section-label">Food Log</div>
-  <div class="card" style="margin-bottom:12px">
-    <div style="display:flex;align-items:flex-end;gap:16px;margin-bottom:14px">
-      <div style="flex:1">
-        <div style="font-size:10px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.12em;text-transform:uppercase">Logged Today</div>
-        <div style="font-family:var(--font-d);font-size:48px;line-height:1;color:var(--text1)" id="foodCalToday">0 <span style="font-size:16px;color:var(--text3)">kcal</span></div>
-        <div style="margin-top:8px"><div class="pbar-wrap"><div class="pbar-fill" id="calPbarFill" style="width:0%;background:var(--mint);box-shadow:0 0 8px rgba(110,231,183,0.30)"></div></div><div id="calLimitText" style="font-size:11px;color:var(--text3);font-family:var(--font-m);margin-top:4px">1500 kcal remaining</div></div>
+  <div class="desk-grid-2">
+    <div>
+      <!-- Food log -->
+      <div class="section-label">Food Log</div>
+      <div class="card" style="margin-bottom:12px">
+        <div style="display:flex;align-items:flex-end;gap:16px;margin-bottom:14px">
+          <div style="flex:1">
+            <div style="font-size:10px;color:var(--text3);font-family:var(--font-m);letter-spacing:0.12em;text-transform:uppercase">Logged Today</div>
+            <div style="font-family:var(--font-d);font-size:48px;line-height:1;color:var(--text1)" id="foodCalToday">0 <span style="font-size:16px;color:var(--text3)">kcal</span></div>
+            <div style="margin-top:8px"><div class="pbar-wrap"><div class="pbar-fill" id="calPbarFill" style="width:0%;background:var(--mint);box-shadow:0 0 8px rgba(110,231,183,0.30)"></div></div><div id="calLimitText" style="font-size:11px;color:var(--text3);font-family:var(--font-m);margin-top:4px">1500 kcal remaining</div></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+          <div style="background:var(--bg2);border-radius:var(--r);padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:700;color:var(--blue)" id="proteinToday">0g</div>
+            <div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;margin-top:2px">Protein</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:var(--r);padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:700;color:var(--amber)" id="carbsToday">0g</div>
+            <div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;margin-top:2px">Carbs</div>
+          </div>
+          <div style="background:var(--bg2);border-radius:var(--r);padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:700;color:var(--purple)" id="fatsToday">0g</div>
+            <div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;margin-top:2px">Fat</div>
+          </div>
+        </div>
+        <div class="field"><label>Meal / Food</label><input class="inp" id="mealNameInp" placeholder="e.g. Chicken and rice"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+          <input type="number" class="inp" id="mealCalInp" placeholder="kcal" style="text-align:center">
+          <input type="number" class="inp" id="mealProteinInp" placeholder="P g" style="text-align:center">
+          <input type="number" class="inp" id="mealCarbsInp" placeholder="C g" style="text-align:center">
+          <input type="number" class="inp" id="mealFatInp" placeholder="F g" style="text-align:center">
+        </div>
+        <button class="btn btn-gold btn-full" onclick="logMeal()">+ Log Meal</button>
       </div>
+      <div id="mealsList" style="margin-bottom:16px"></div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
-      <div style="background:var(--bg2);border-radius:var(--r);padding:10px;text-align:center">
-        <div style="font-size:18px;font-weight:700;color:var(--blue)" id="proteinToday">0g</div>
-        <div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;margin-top:2px">Protein</div>
-      </div>
-      <div style="background:var(--bg2);border-radius:var(--r);padding:10px;text-align:center">
-        <div style="font-size:18px;font-weight:700;color:var(--amber)" id="carbsToday">0g</div>
-        <div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;margin-top:2px">Carbs</div>
-      </div>
-      <div style="background:var(--bg2);border-radius:var(--r);padding:10px;text-align:center">
-        <div style="font-size:18px;font-weight:700;color:var(--purple)" id="fatsToday">0g</div>
-        <div style="font-size:9px;color:var(--text3);font-family:var(--font-m);text-transform:uppercase;margin-top:2px">Fat</div>
-      </div>
-    </div>
-    <div class="field"><label>Meal / Food</label><input class="inp" id="mealNameInp" placeholder="e.g. Chicken and rice"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:10px">
-      <input type="number" class="inp" id="mealCalInp" placeholder="kcal" style="text-align:center">
-      <input type="number" class="inp" id="mealProteinInp" placeholder="P g" style="text-align:center">
-      <input type="number" class="inp" id="mealCarbsInp" placeholder="C g" style="text-align:center">
-      <input type="number" class="inp" id="mealFatInp" placeholder="F g" style="text-align:center">
-    </div>
-    <button class="btn btn-gold btn-full" onclick="logMeal()">+ Log Meal</button>
-  </div>
-  <div id="mealsList" style="margin-bottom:16px"></div>
-
-  <!-- Budget -->
-  <div class="section-label">Monthly Budget</div>
+    <div>
+      <!-- Budget -->
+      <div class="section-label">Monthly Budget</div>
   <div class="card" style="margin-bottom:12px">
     <div style="display:flex;gap:10px;margin-bottom:14px">
       <div class="field" style="flex:1;margin-bottom:0"><label>Monthly Income</label><input type="number" class="inp" id="budgetIncomeInp" placeholder="0" onchange="saveBudgetIncome()"></div>
@@ -670,8 +774,10 @@ input,select,textarea{font-size:16px!important}
       </select>
     </div>
     <button class="btn btn-gold btn-full" onclick="addExpense()">+ Add Expense</button>
-  </div>
-  <div id="expensesList" style="margin-bottom:16px"></div>
+      </div>
+      <div id="expensesList" style="margin-bottom:16px"></div>
+    </div>
+  </div><!-- /desk-grid-2 -->
 
   <!-- Free time tasks -->
   <div class="section-label">Free Time Tasks</div>
@@ -912,10 +1018,9 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 // ══════════════════════════════════════════════════════
 function go(name,btn){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.nb,.tn-item').forEach(b=>b.classList.remove('active'));
   document.getElementById('v-'+name).classList.add('active');
-  if(btn)btn.classList.add('active');
-  else{const b=document.querySelector('[data-v="'+name+'"]');if(b)b.classList.add('active')}
+  document.querySelectorAll('[data-v="'+name+'"]').forEach(b=>b.classList.add('active'));
   window.scrollTo(0,0);
   const renders={dash:renderDash,daily:renderDaily,gym:renderGym,reading:renderReading,spiritual:renderSpiritual,income:renderIncome,more:renderMore};
   if(renders[name])renders[name]();
