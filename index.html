@@ -908,6 +908,28 @@ input,select,textarea{font-size:16px!important}
   <button class="btn btn-gold btn-full" onclick="addTask()">Add Task</button>
 </div></div>
 
+<div class="modal-bg" id="editExpenseModal"><div class="modal" style="position:relative">
+  <button class="modal-close" onclick="closeModal('editExpenseModal')">×</button>
+  <div class="modal-title">Edit Expense</div>
+  <div class="field"><label>Name</label><input class="inp" id="editExpNameInp" placeholder="Expense name"></div>
+  <div class="field"><label>Amount ($)</label><input class="inp" type="number" id="editExpAmtInp" placeholder="0.00" step="0.01" inputmode="decimal"></div>
+  <div class="field"><label>Category</label>
+    <select class="inp" id="editExpCatInp">
+      <option value="supplements">Supplements</option>
+      <option value="ai">AI Subscriptions</option>
+      <option value="books">Books</option>
+      <option value="fragrances">Fragrances</option>
+      <option value="watches">Watches</option>
+      <option value="clothes">Clothes</option>
+      <option value="accessories">Accessories</option>
+      <option value="gym">Gym/Training</option>
+      <option value="courses">Courses</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+  <button class="btn btn-gold btn-full" onclick="saveEditExpense()">Save Changes</button>
+</div></div>
+
 <script>
 'use strict';
 // ══════════════════════════════════════════════════════
@@ -1713,8 +1735,12 @@ function renderBudget(){
     entries.forEach(([cat,amt])=>{const a=(amt/total)*2*Math.PI;const a2=angle+a;const pad=0.02;const a1s=angle+pad,a2s=a2-pad;if(a2s>a1s){const cx=90,cy=90,r=80,ir=55;const x1=cx+r*Math.cos(a1s),y1=cy+r*Math.sin(a1s),x2=cx+r*Math.cos(a2s),y2=cy+r*Math.sin(a2s),x3=cx+ir*Math.cos(a2s),y3=cy+ir*Math.sin(a2s),x4=cx+ir*Math.cos(a1s),y4=cy+ir*Math.sin(a1s);const lg=a>Math.PI?1:0;const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',`M${x1},${y1} A${r},${r} 0 ${lg},1 ${x2},${y2} L${x3},${y3} A${ir},${ir} 0 ${lg},0 ${x4},${y4} Z`);path.setAttribute('fill',BCAT_COLORS[cat]||'#9CA3AF');svg.appendChild(path)}angle=a2});
   }else{const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',90);c.setAttribute('cy',90);c.setAttribute('r',80);c.setAttribute('fill','rgba(255,255,255,0.04)');svg.appendChild(c);const c2=document.createElementNS('http://www.w3.org/2000/svg','circle');c2.setAttribute('cx',90);c2.setAttribute('cy',90);c2.setAttribute('r',55);c2.setAttribute('fill','#080809');svg.appendChild(c2)}
   document.getElementById('budgetLegend').innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([cat,amt])=>`<div style="display:flex;align-items:center;gap:10px"><div style="width:10px;height:10px;border-radius:50%;background:${BCAT_COLORS[cat]||'#9CA3AF'};flex-shrink:0"></div><span style="flex:1;font-size:13px;color:var(--text2)">${BCAT_LABELS[cat]||cat}</span><span style="font-size:13px;font-weight:600;font-family:var(--font-m)">$${amt.toLocaleString()}</span><span style="font-size:11px;color:var(--text3);font-family:var(--font-m);min-width:34px;text-align:right">${total>0?Math.round(amt/total*100)+'%':'0%'}</span></div>`).join('');
-  document.getElementById('expensesList').innerHTML=expenses.slice().reverse().slice(0,20).map(e=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;border-left:3px solid ${BCAT_COLORS[e.cat]||'#9CA3AF'}"><div><div style="font-size:14px;font-weight:600">${esc(e.name)}</div><div style="font-size:11px;color:var(--text3)">${BCAT_LABELS[e.cat]||e.cat} · ${esc(e.date)}</div></div><div style="font-size:15px;font-weight:700;font-family:var(--font-m)">$${e.amt.toLocaleString()}</div></div>`).join('');
+  const n=expenses.length;document.getElementById('expensesList').innerHTML=expenses.slice().reverse().slice(0,20).map((e,i)=>{const origIdx=n-1-i;return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--bg1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:6px;border-left:3px solid ${BCAT_COLORS[e.cat]||'#9CA3AF'}"><div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:600">${esc(e.name)}</div><div style="font-size:11px;color:var(--text3)">${BCAT_LABELS[e.cat]||e.cat} · ${esc(e.date)}</div></div><div style="display:flex;align-items:center;gap:8px;flex-shrink:0"><div style="font-size:15px;font-weight:700;font-family:var(--font-m)">$${e.amt.toLocaleString()}</div><button onclick="openEditExpense(${origIdx})" style="background:none;border:none;cursor:pointer;font-size:14px;padding:4px 6px;opacity:0.6" title="Edit">✏️</button><button onclick="deleteExpense(${origIdx})" style="background:none;border:none;cursor:pointer;font-size:16px;padding:4px 6px;color:var(--text3);font-weight:700" title="Delete">×</button></div></div>`;}).join('');
 }
+let _editExpIdx=-1;
+function openEditExpense(origIdx){const expenses=S.get('expenses')||[];const e=expenses[origIdx];if(!e)return;_editExpIdx=origIdx;document.getElementById('editExpNameInp').value=e.name;document.getElementById('editExpAmtInp').value=e.amt;document.getElementById('editExpCatInp').value=e.cat;openModal('editExpenseModal')}
+function saveEditExpense(){if(_editExpIdx<0)return;const name=document.getElementById('editExpNameInp').value.trim();const amt=parseFloat(document.getElementById('editExpAmtInp').value)||0;const cat=document.getElementById('editExpCatInp').value;if(!name||amt<=0){toast('Enter name and amount');return}const expenses=S.get('expenses')||[];expenses[_editExpIdx]={...expenses[_editExpIdx],name,amt,cat};S.set('expenses',expenses);closeModal('editExpenseModal');renderBudget();toast('Expense updated')}
+function deleteExpense(origIdx){const expenses=S.get('expenses')||[];expenses.splice(origIdx,1);S.set('expenses',expenses);renderBudget();toast('Expense deleted')}
 function addExpense(){const name=document.getElementById('expNameInp').value.trim();const amt=parseFloat(document.getElementById('expAmtInp').value)||0;const cat=document.getElementById('expCatInp').value;if(!name||amt<=0){toast('Enter name and amount');return}const expenses=S.get('expenses')||[];expenses.push({id:Date.now(),name,amt,cat,date:fmtDate(new Date())});S.set('expenses',expenses);document.getElementById('expNameInp').value='';document.getElementById('expAmtInp').value='';renderBudget();toast('Expense added')}
 function saveBudgetIncome(){S.set('budgetIncome',parseFloat(document.getElementById('budgetIncomeInp').value)||0)}
 
